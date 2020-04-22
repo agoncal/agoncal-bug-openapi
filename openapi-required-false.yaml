@@ -1,0 +1,28 @@
+---
+openapi: 3.0.1
+info:
+  title: Generated API
+  version: "1.0"
+paths:
+  /hello:
+    get:
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  description:
+                    type: string
+                  name:
+                    type: string
+components:
+  schemas:
+    Fruit:
+      type: object
+      properties:
+        description:
+          type: string
+        name:
+          type: string

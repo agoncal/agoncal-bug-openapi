@@ -1,0 +1,101 @@
+# Possible BUG in OpenAPI
+
+When documenting the OpenAPI with a `required` schema attribute set to either `true` or `false`, the `$ref` is not generated.
+
+Take the following POJO:
+
+```
+@Schema
+public class Fruit {
+
+    public String name;
+    public String description;
+
+    // constructors
+}
+```
+
+And the following REST endpoint
+
+```
+@Path("/hello")
+public class ExampleResource {
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @APIResponse(
+            content = @Content(mediaType = MediaType.APPLICATION_JSON,
+                    schema = @Schema(implementation = Fruit.class)))
+    public Response hello() {
+        return Response.ok(new Fruit("Banana", "Yellow")).build();
+    }
+}
+```
+
+You get the following generated contract (notice the `$ref`)
+
+```
+paths:
+  /hello:
+    get:
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Fruit'
+components:
+  schemas:
+    Fruit:
+      type: object
+      properties:
+        description:
+          type: string
+        name:
+          type: string
+```
+
+Now, add the `required` attribute (to either `true` or `false`):
+
+```
+@Path("/hello")
+public class ExampleResource {
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @APIResponse(
+            content = @Content(mediaType = MediaType.APPLICATION_JSON,
+                    schema = @Schema(implementation = Fruit.class, required = false)))
+    public Response hello() {
+        return Response.ok(new Fruit("Banana", "Yellow")).build();
+    }
+}
+```
+
+The generated contract does not have a `$ref` anymore:
+
+```
+paths:
+  /hello:
+    get:
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  description:
+                    type: string
+                  name:
+                    type: string
+components:
+  schemas:
+    Fruit:
+      type: object
+      properties:
+        description:
+          type: string
+        name:
+          type: string
+```
